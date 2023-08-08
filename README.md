@@ -1,5 +1,5 @@
 # ross
-Video streaming server
+A Simple and efficient video streaming server
 
 ### Usage
 - Run server on local machine
@@ -13,3 +13,12 @@ go run main.go
 - [x] HLS
 - [ ] RTMP
 - [ ] FLV
+
+### Supported container formats
+- [ ] FLS
+- [ ] TS
+
+### Supported encoding formats
+- [ ] H264
+- [ ] AAC
+- [ ] MP3 
