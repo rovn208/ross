@@ -2,7 +2,11 @@ module github.com/rovn208/ross
 
 go 1.20
 
-require github.com/gin-gonic/gin v1.9.1
+require (
+	github.com/gin-gonic/gin v1.9.1
+	github.com/kkdai/youtube/v2 v2.8.1
+	golang.org/x/net v0.14.0
+)
 
 require (
 	github.com/bitly/go-simplejson v0.5.0 // indirect
@@ -20,7 +24,6 @@ require (
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/google/pprof v0.0.0-20230406165453-00490a63f317 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/kkdai/youtube/v2 v2.8.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
@@ -31,7 +34,6 @@ require (
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	golang.org/x/arch v0.4.0 // indirect
 	golang.org/x/crypto v0.12.0 // indirect
-	golang.org/x/net v0.14.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect
 	golang.org/x/text v0.12.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
