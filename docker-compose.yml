@@ -1,0 +1,23 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:12-alpine
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=ross_local
+    ports:
+      - "5432:5432"
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://root:secret@db:5432/ross_local?sslmode=disable
+    volumes:
+      - ./videos:/server/videos
+    command: ["/server/ross"]
