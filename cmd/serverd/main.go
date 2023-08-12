@@ -3,7 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/gin-gonic/gin"
+	"github.com/rovn208/ross/pkg/config"
+	"github.com/rovn208/ross/pkg/router"
 	"log"
 	"net/http"
 	"os"
@@ -13,21 +14,20 @@ import (
 )
 
 func main() {
-	const musicDir = "videos"
-	const port = 8080
-	router := gin.Default()
-	router.StaticFS("/", http.Dir(musicDir))
+	cfg, err := config.LoadConfig(".")
+	r := router.NewRouter()
+	//r.StaticFS("/", http.Dir(cfg.VideoDir))
 	//ytClient := youtube.NewYoutubeClient()
 	//err := ytClient.DownloadVideo("https://www.youtube.com/watch?v=9os5GBfuvJc")
 	//if err != nil {
 	//	log.Fatal(err)
 	//}
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%v", port),
-		Handler: router,
+		Addr:    fmt.Sprintf(":%v", cfg.Port),
+		Handler: r,
 	}
 	go func() {
-		if err := srv.ListenAndServe(); err != nil {
+		if err = srv.ListenAndServe(); err != nil {
 			if err == http.ErrServerClosed {
 				log.Println("Server closed under request")
 			} else {
@@ -43,18 +43,9 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if err := srv.Shutdown(ctx); err != nil {
+	if err = srv.Shutdown(ctx); err != nil {
 		log.Fatal("Server forced to shutdown: ", err)
 	}
 	log.Println("Server exiting")
 
-}
-
-func fileServerHandler(dir string) http.HandlerFunc {
-	musicDir := http.Dir(dir)
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		http.FileServer(musicDir).ServeHTTP(w, r)
-	}
 }
