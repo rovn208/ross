@@ -1,12 +1,12 @@
 version: "2"
 sql:
   - engine: "postgresql"
-    queries: "pkg/db/sql"
+    queries: "pkg/db/query"
     schema: "pkg/db/migration"
     gen:
       go:
         package: "db"
-        out: "pkg/db"
+        out: "pkg/db/sqlc"
         sql_package: "pgx/v5"
         emit_json_tags: true
         emit_interface: true

@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS "users" (
                          "id" bigserial PRIMARY KEY,
                          "username" varchar UNIQUE NOT NULL,
                          "email" varchar NOT NULL,
-                         "hash_password" varchar NOT NULL,
+                         "hashed_password" varchar NOT NULL,
                          "password_changed_at" timestamp,
                          "full_name" varchar NOT NULL,
                          "created_at" timestamp DEFAULT (now()),
