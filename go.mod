@@ -4,6 +4,9 @@ go 1.20
 
 require (
 	github.com/gin-gonic/gin v1.9.1
+	github.com/golang-jwt/jwt/v5 v5.0.0
+	github.com/golang-migrate/migrate/v4 v4.16.2
+	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/kkdai/youtube/v2 v2.8.1
 	github.com/spf13/viper v1.16.0
@@ -26,7 +29,6 @@ require (
 	github.com/go-playground/validator/v10 v10.15.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
-	github.com/golang-migrate/migrate/v4 v4.16.2 // indirect
 	github.com/google/pprof v0.0.0-20230406165453-00490a63f317 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect

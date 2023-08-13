@@ -7,6 +7,7 @@ import (
 	"github.com/rovn208/ross/pkg/api"
 	"github.com/rovn208/ross/pkg/configure"
 	db "github.com/rovn208/ross/pkg/db/sqlc"
+	"github.com/rovn208/ross/pkg/token"
 	"log"
 	"net/http"
 	"os"
@@ -21,18 +22,15 @@ func main() {
 		log.Fatal("cannot connect to db")
 	}
 	store := db.NewStore(connPool)
-	server, err := api.NewServer(config, store)
+	tokenMaker, err := token.NewJWTMaker(config.TokenSecretKey)
+	if err != nil {
+		log.Fatal("error when initializing token maker", err)
+	}
+	server, err := api.NewServer(config, store, tokenMaker)
 	if err != nil {
 		log.Fatal("error when initializing server")
 	}
-	runDBMigration(config.MigrationURL, config.DBUrl)
-
-	//r.StaticFS("/", http.Dir(cfg.VideoDir))
-	//ytClient := youtube.NewYoutubeClient()
-	//err := ytClient.DownloadVideo("https://www.youtube.com/watch?v=9os5GBfuvJc")
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
+	//runDBMigration(config.MigrationURL, config.DBUrl)
 
 	go func() {
 		if err = server.Start(config.HTTPServerAddress); err != nil {

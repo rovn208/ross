@@ -159,3 +159,6 @@ func bindAndGetIdUri(req videoIDUriRequest, ctx *gin.Context) (int64, error) {
 	}
 	return id, nil
 }
+
+// TODO: Add youtube link
+// TODO: Add video via form
