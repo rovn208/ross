@@ -1,11 +1,12 @@
-package config
+package configure
 
 import "github.com/spf13/viper"
 
 type Config struct {
-	DBUrl    string `mapstructure:"DATABASE_URL"`
-	Port     string `mapstructure:"PORT"`
-	VideoDir string `mapstructure:"VIDEO_DIR"`
+	DBUrl             string `mapstructure:"DATABASE_URL"`
+	VideoDir          string `mapstructure:"VIDEO_DIR"`
+	HTTPServerAddress string `mapstructure:"HTTP_SERVER_ADDRESS"`
+	MigrationURL      string `mapstructure:"MIGRATION_URL"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

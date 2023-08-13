@@ -3,10 +3,9 @@ CREATE TABLE IF NOT EXISTS "users" (
                          "username" varchar UNIQUE NOT NULL,
                          "email" varchar NOT NULL,
                          "hashed_password" varchar NOT NULL,
-                         "password_changed_at" timestamp,
                          "full_name" varchar NOT NULL,
-                         "created_at" timestamp DEFAULT (now()),
-                         "updated_at" timestamp
+                         "created_at" timestamptz NOT NULL DEFAULT (now()),
+                         "updated_at" timestamptz NOT NULL DEFAULT '0001-01-01'
 );
 
 CREATE TABLE IF NOT EXISTS "videos" (
@@ -16,15 +15,15 @@ CREATE TABLE IF NOT EXISTS "videos" (
                           "description" varchar,
                           "thumbnail_url" varchar,
                           "created_by" bigserial NOT NULL,
-                          "created_at" timestamp DEFAULT (now()),
-                          "updated_at" timestamp
+                          "created_at" timestamptz NOT NULL DEFAULT (now()),
+                          "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE IF NOT EXISTS "follows" (
                            "following_user_id" bigserial NOT NULL,
                            "followed_user_id" bigserial NOT NULL,
-                           "created_at" timestamp DEFAULT (now()),
-                           "updated_at" timestamp
+                           "created_at" timestamptz NOT NULL DEFAULT (now()),
+                           "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE INDEX ON "users" ("id");
