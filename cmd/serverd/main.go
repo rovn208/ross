@@ -17,9 +17,10 @@ import (
 
 func main() {
 	config, err := configure.LoadConfig(".")
-	connPool, err := pgxpool.New(context.Background(), config.DBUrl)
+	connPool, _ := pgxpool.New(context.Background(), config.DBUrl)
+	err = connPool.Ping(context.Background())
 	if err != nil {
-		log.Fatal("cannot connect to db")
+		log.Fatal("cannot when initialize db", err)
 	}
 	store := db.NewStore(connPool)
 	tokenMaker, err := token.NewJWTMaker(config.TokenSecretKey)

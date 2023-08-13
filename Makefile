@@ -1,10 +1,13 @@
 DB_URL=postgresql://root:secret@localhost:5432/ross_local?sslmode=disable
 
 run:
-	go run cmd/serverd/main.go
+	DATABASE_URL=postgres://root:secret@localhost:5432/ross_local?sslmode=disable go run cmd/serverd/main.go
 
 build:
 	docker build . -t ross-api
+
+db:
+	docker-compose up -d db
 
 sqlc:
 	sqlc generate
