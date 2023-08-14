@@ -2,21 +2,25 @@ package main
 
 import (
 	"context"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rovn208/ross/pkg/api"
 	"github.com/rovn208/ross/pkg/configure"
 	db "github.com/rovn208/ross/pkg/db/sqlc"
 	"github.com/rovn208/ross/pkg/token"
-	"log"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 func main() {
 	config, err := configure.LoadConfig(".")
+	if err != nil {
+		log.Fatal(err)
+	}
 	connPool, _ := pgxpool.New(context.Background(), config.DBUrl)
 	err = connPool.Ping(context.Background())
 	if err != nil {

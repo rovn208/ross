@@ -1,12 +1,16 @@
 package api
 
 import (
+	"fmt"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
 	db "github.com/rovn208/ross/pkg/db/sqlc"
-	"net/http"
-	"strconv"
-	"time"
+	"github.com/rovn208/ross/pkg/ffmpeg"
 )
 
 type createVideoRequest struct {
@@ -160,5 +164,45 @@ func bindAndGetIdUri(req videoIDUriRequest, ctx *gin.Context) (int64, error) {
 	return id, nil
 }
 
-// TODO: Add youtube link
-// TODO: Add video via form
+type addYoutubeVideoRequest struct {
+	URL string `json:"url,omitempty" binding:"required"`
+}
+
+func (server *Server) addYoutubeVideo(ctx *gin.Context) {
+	var req addYoutubeVideoRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	file, err := server.ytClient.DownloadVideo(req.URL)
+	if err != nil {
+		fmt.Println("error when downloading video")
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	err = ffmpeg.ToHLSFormat(ctx, file)
+	if err != nil {
+		fmt.Println("error when converting hls", err)
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	err = os.Remove(file.Name())
+	if err != nil {
+		fmt.Println("error when remove file")
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+	// TODO: Add video metadata to DB
+
+	ctx.JSON(http.StatusInternalServerError, messageResponse("creating video via youtube video successfully"))
+}
+
+/**
+TODO: Add missing endpoints
+- Add video via upload
+- List videos
+- Subscribe videos
+*/

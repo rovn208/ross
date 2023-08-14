@@ -1,12 +1,13 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/rovn208/ross/pkg/configure"
 	db "github.com/rovn208/ross/pkg/db/sqlc"
 	"github.com/rovn208/ross/pkg/token"
 	"github.com/rovn208/ross/pkg/youtube"
-	"net/http"
 )
 
 type Server struct {
@@ -22,7 +23,7 @@ func NewServer(config configure.Config, store db.Store, tokenMaker token.Maker) 
 		config:     config,
 		store:      store,
 		tokenMaker: tokenMaker,
-		ytClient:   youtube.NewYoutubeClient(),
+		ytClient:   youtube.NewYoutubeClient(config),
 	}
 
 	server.setupRouter()
@@ -35,6 +36,7 @@ func (server *Server) setupRouter() {
 	router.Use(gin.Recovery())
 
 	v1 := router.Group("/api/v1")
+	v1.Use(corsMiddleware())
 	v1.StaticFS("/sources/", http.Dir(server.config.VideoDir))
 
 	usersRouter := v1.Group("/users")
@@ -51,6 +53,7 @@ func (server *Server) setupRouter() {
 	videosRouter.POST("/", server.createVideo)
 	videosRouter.DELETE("/:id", server.deleteVideo)
 	videosRouter.PUT("/", server.updateVideo)
+	videosRouter.POST("/youtube", server.addYoutubeVideo)
 
 	followsRouter := v1.Group("/follows")
 	followsRouter.Use(authMiddleware(server.tokenMaker))

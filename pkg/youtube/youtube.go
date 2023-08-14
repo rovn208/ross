@@ -3,27 +3,33 @@ package youtube
 import (
 	"errors"
 	"fmt"
-	"github.com/kkdai/youtube/v2"
-	"golang.org/x/net/http/httpproxy"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"regexp"
+	"strings"
 	"time"
+
+	"github.com/kkdai/youtube/v2"
+	"github.com/rovn208/ross/pkg/configure"
+	"golang.org/x/net/http/httpproxy"
 )
 
 var (
-	rx             = regexp.MustCompile(`https://(.+.youtube.com|youtu.be)/(watch\?v=([^&^>^|]+)|([^&^>^|]+))`)
-	ErrInvalidLink = errors.New("invalid youtube link")
+	rx              = regexp.MustCompile(`https://(.+.youtube.com|youtu.be)/(watch\?v=([^&^>^|]+)|([^&^>^|]+))`)
+	ErrInvalidLink  = errors.New("invalid youtube link")
+	ErrCreatingFile = errors.New("error when creating file")
+	ErrRemovingFile = errors.New("error when removing file")
 )
 
 type Client struct {
 	*youtube.Client
+	config configure.Config
 }
 
-func NewYoutubeClient() *Client {
+func NewYoutubeClient(config configure.Config) *Client {
 	proxyFunc := httpproxy.FromEnvironment().ProxyFunc()
 	httpTransport := &http.Transport{
 		// Proxy: http.ProxyFromEnvironment() does not work. Why?
@@ -44,6 +50,7 @@ func NewYoutubeClient() *Client {
 		Client: &youtube.Client{
 			HTTPClient: &http.Client{Transport: httpTransport},
 		},
+		config: config,
 	}
 }
 
@@ -66,32 +73,46 @@ func (c *Client) GetVideoID(url string) (id string, err error) {
 	return "", fmt.Errorf("%s %w", url, ErrInvalidLink)
 }
 
-func (c *Client) DownloadVideo(url string) error {
+func (c *Client) DownloadVideo(url string) (*os.File, error) {
 	videoID, err := c.GetVideoID(url)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	video, err := c.GetVideo(videoID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	formats := video.Formats.WithAudioChannels() // only get videos with audio
-	stream, _, err := c.GetStream(video, &formats[0])
+	fileReader, _, err := c.GetStream(video, &formats[0])
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	videoDir := "videos" // TODO: Using env param
-	file, err := os.Create(fmt.Sprintf("%s/%s.mp4", videoDir, videoID))
+	file, err := os.Create(fmt.Sprintf("%s/%s.mp4", c.config.VideoDir, videoID))
 	if err != nil {
-		panic(err)
+		return nil, ErrCreatingFile
 	}
 	defer file.Close()
 
-	_, err = io.Copy(file, stream)
+	_, err = io.Copy(file, fileReader)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+
+	return file, nil
+}
+
+func getAudioWebmFormat(v *youtube.Video) (*youtube.Format, error) {
+	formats := v.Formats
+
+	audioFormats := formats.Type("audio")
+	audioFormats.Sort()
+	for _, fm := range formats {
+		if strings.HasPrefix(fm.MimeType, "audio/webm") {
+			return &fm, nil
+		}
+	}
+	// no webm, take first format
+	return &formats[0], nil
 }

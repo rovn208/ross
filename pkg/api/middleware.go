@@ -3,10 +3,11 @@ package api
 import (
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/rovn208/ross/pkg/token"
 	"net/http"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/rovn208/ross/pkg/token"
 )
 
 const (
@@ -48,5 +49,12 @@ func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 
 		ctx.Set(authorizationPayloadKey, payload)
 		ctx.Next()
+	}
+}
+
+func corsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Next()
 	}
 }
