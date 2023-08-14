@@ -11,6 +11,7 @@ require (
 	github.com/kkdai/youtube/v2 v2.8.1
 	github.com/spf13/viper v1.16.0
 	golang.org/x/crypto v0.12.0
+	golang.org/x/exp v0.0.0-20230811145659-89c5cff77bcb
 	golang.org/x/net v0.14.0
 )
 

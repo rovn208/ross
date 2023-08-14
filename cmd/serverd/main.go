@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/rovn208/ross/pkg/util"
 	"log"
 	"net/http"
 	"os"
@@ -17,6 +18,7 @@ import (
 )
 
 func main() {
+	util.Logger.Info("Starting Server")
 	config, err := configure.LoadConfig(".")
 	if err != nil {
 		log.Fatal(err)
@@ -40,7 +42,7 @@ func main() {
 	go func() {
 		if err = server.Start(config.HTTPServerAddress); err != nil {
 			if err == http.ErrServerClosed {
-				log.Println("Server closed under request")
+				log.Fatal("Server closed under request")
 			} else {
 				log.Fatal("Server closed unexpect: ", err)
 			}
@@ -49,7 +51,7 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Println("Shutting down server")
+	util.Logger.Info("Shutting down server")
 }
 
 func runDBMigration(migrationURL string, dbSource string) {
