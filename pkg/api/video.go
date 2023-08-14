@@ -1,7 +1,11 @@
 package api
 
 import (
+	"errors"
 	"fmt"
+	"github.com/rovn208/ross/pkg/token"
+	"github.com/rovn208/ross/pkg/util"
+	"github.com/rovn208/ross/pkg/youtube"
 	"net/http"
 	"os"
 	"strconv"
@@ -11,6 +15,11 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	db "github.com/rovn208/ross/pkg/db/sqlc"
 	"github.com/rovn208/ross/pkg/ffmpeg"
+)
+
+var (
+	ErrVideoDoesNotExists = errors.New("video does not exists")
+	ErrVideoAlreadyExists = errors.New("video already exists")
 )
 
 type createVideoRequest struct {
@@ -110,7 +119,6 @@ func (server *Server) getVideo(ctx *gin.Context) {
 }
 
 type updateVideoRequest struct {
-	ID           int64  `json:"id" binding:"required"`
 	Title        string `json:"title"`
 	StreamUrl    string `json:"stream_url"`
 	Description  string `json:"description"`
@@ -118,14 +126,25 @@ type updateVideoRequest struct {
 }
 
 func (server *Server) updateVideo(ctx *gin.Context) {
+	var uri videoIDUriRequest
+	id, err := bindAndGetIdUri(uri, ctx)
+	if err != nil {
+		if errors.Is(err, db.ErrRecordNotFound) {
+			ctx.JSON(http.StatusNotFound, errorResponse(ErrVideoDoesNotExists))
+			return
+		}
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
 	var req updateVideoRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
+	if err = ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	arg := db.UpdateVideoParams{
-		ID: req.ID,
+		ID: id,
 		Title: pgtype.Text{
 			String: req.Title,
 			Valid:  req.Title != "",
@@ -175,34 +194,84 @@ func (server *Server) addYoutubeVideo(ctx *gin.Context) {
 		return
 	}
 
-	file, err := server.ytClient.DownloadVideo(req.URL)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	videoID, err := server.ytClient.GetVideoID(req.URL)
 	if err != nil {
-		fmt.Println("error when downloading video")
+		util.Logger.Error("Error when getting youtube video id", "error", err)
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+	if util.IsFileAlreadyExists(youtube.GetStreamFile(server.config, videoID)) {
+		ctx.JSON(http.StatusBadRequest, errorResponse(ErrVideoAlreadyExists))
+		return
+	}
+
+	ytVideo, err := server.ytClient.DownloadVideo(req.URL)
+	if err != nil {
+		util.Logger.Error("Error when loading youtube video", "error", err)
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	err = ffmpeg.ToHLSFormat(ctx, file)
+	err = ffmpeg.ToHLSFormat(ctx, ytVideo.Name())
 	if err != nil {
-		fmt.Println("error when converting hls", err)
+		util.Logger.Error("Error when converting hls", "error", err)
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	err = os.Remove(file.Name())
+	err = os.Remove(ytVideo.Name())
 	if err != nil {
-		fmt.Println("error when remove file")
+		util.Logger.Error("Error when removing file", "error", err)
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-	// TODO: Add video metadata to DB
+
+	_, err = server.store.CreateVideo(ctx, db.CreateVideoParams{
+		StreamUrl: fmt.Sprintf("%s/%s.m3u8", videoID, videoID),
+		Title:     ytVideo.Video.Title,
+		Description: pgtype.Text{
+			String: ytVideo.Video.Description,
+			Valid:  ytVideo.Video.Description != "",
+		},
+		ThumbnailUrl: pgtype.Text{
+			String: ytVideo.Video.Thumbnails[0].URL,
+			Valid:  ytVideo.Video.Thumbnails[0].URL != "",
+		},
+		CreatedBy: authPayload.UserID,
+	})
+	if err != nil {
+		util.Logger.Error("Error when saving video metadata into database", "video", ytVideo.Video, "error", err)
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
 
 	ctx.JSON(http.StatusInternalServerError, messageResponse("creating video via youtube video successfully"))
 }
 
-/**
-TODO: Add missing endpoints
-- Add video via upload
-- List videos
-- Subscribe videos
-*/
+func toListVideoResponse(videos []db.Video) []videoResponse {
+	res := make([]videoResponse, len(videos))
+	for i, video := range videos {
+		res[i] = newVideoResponse(video)
+	}
+	return res
+}
+
+func (server *Server) getListVideo(ctx *gin.Context) {
+	arg := db.GetListVideoParams{
+		Limit:  20,
+		Offset: 0,
+	}
+	videos, err := server.store.GetListVideo(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, toListVideoResponse(videos))
+}
+
+func (server *Server) uploadVideo(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, "To be implemented")
+}

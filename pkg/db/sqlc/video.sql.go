@@ -63,6 +63,47 @@ func (q *Queries) DeleteVideo(ctx context.Context, id int64) error {
 	return err
 }
 
+const getListVideo = `-- name: GetListVideo :many
+SELECT id, title, stream_url, description, thumbnail_url, created_by, created_at, updated_at FROM videos
+ORDER BY created_at DESC
+LIMIT $1
+OFFSET $2
+`
+
+type GetListVideoParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) GetListVideo(ctx context.Context, arg GetListVideoParams) ([]Video, error) {
+	rows, err := q.db.Query(ctx, getListVideo, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Video{}
+	for rows.Next() {
+		var i Video
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.StreamUrl,
+			&i.Description,
+			&i.ThumbnailUrl,
+			&i.CreatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getVideo = `-- name: GetVideo :one
 SELECT id, title, stream_url, description, thumbnail_url, created_by, created_at, updated_at FROM videos
 WHERE id = $1 LIMIT 1

@@ -27,3 +27,9 @@ SET
 WHERE
     id = sqlc.arg(id)
 RETURNING *;
+
+-- name: GetListVideo :many
+SELECT * FROM videos
+ORDER BY created_at DESC
+LIMIT $1
+OFFSET $2;

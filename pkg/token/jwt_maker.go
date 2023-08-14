@@ -15,6 +15,7 @@ type JWTMaker struct {
 
 type JWTCustomClaims struct {
 	Username string `json:"username,omitempty"`
+	UserID   int64  `json:"user_id,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -25,8 +26,8 @@ func NewJWTMaker(secretKey string) (Maker, error) {
 	return &JWTMaker{secretKey}, nil
 }
 
-func (maker *JWTMaker) CreateToken(username string, duration time.Duration) (string, *Payload, error) {
-	payload, err := NewPayload(username, duration)
+func (maker *JWTMaker) CreateToken(username string, userID int64, duration time.Duration) (string, *Payload, error) {
+	payload, err := NewPayload(username, userID, duration)
 	if err != nil {
 		return "", payload, err
 	}
@@ -64,6 +65,7 @@ func (maker *JWTMaker) VerifyToken(token string) (*Payload, error) {
 func convertPayloadToClaims(payload *Payload) JWTCustomClaims {
 	return JWTCustomClaims{
 		payload.Username,
+		payload.UserID,
 		jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(payload.IssuedAt),
 			ExpiresAt: jwt.NewNumericDate(payload.ExpiredAt),
@@ -74,6 +76,7 @@ func convertPayloadToClaims(payload *Payload) JWTCustomClaims {
 func convertClaimsToPayload(claims *JWTCustomClaims) *Payload {
 	return &Payload{
 		Username:  claims.Username,
+		UserID:    claims.UserID,
 		IssuedAt:  claims.IssuedAt.Time,
 		ExpiredAt: claims.ExpiresAt.Time,
 	}

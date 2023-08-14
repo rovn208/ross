@@ -3,11 +3,13 @@ package youtube
 import (
 	"errors"
 	"fmt"
+	"github.com/rovn208/ross/pkg/util"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -29,7 +31,13 @@ type Client struct {
 	config configure.Config
 }
 
+type VideoYoutube struct {
+	*os.File
+	Video *youtube.Video
+}
+
 func NewYoutubeClient(config configure.Config) *Client {
+	util.Logger.Info("Creating youtube client")
 	proxyFunc := httpproxy.FromEnvironment().ProxyFunc()
 	httpTransport := &http.Transport{
 		// Proxy: http.ProxyFromEnvironment() does not work. Why?
@@ -73,11 +81,13 @@ func (c *Client) GetVideoID(url string) (id string, err error) {
 	return "", fmt.Errorf("%s %w", url, ErrInvalidLink)
 }
 
-func (c *Client) DownloadVideo(url string) (*os.File, error) {
+func (c *Client) DownloadVideo(url string) (*VideoYoutube, error) {
+	util.Logger.Info("Downloading video from youtube", "url", url)
 	videoID, err := c.GetVideoID(url)
 	if err != nil {
 		return nil, err
 	}
+	util.Logger.Info("Getting video from youtube", "videoID", videoID)
 	video, err := c.GetVideo(videoID)
 	if err != nil {
 		return nil, err
@@ -85,13 +95,19 @@ func (c *Client) DownloadVideo(url string) (*os.File, error) {
 
 	formats := video.Formats.WithAudioChannels() // only get videos with audio
 	fileReader, _, err := c.GetStream(video, &formats[0])
+	defer fileReader.Close()
 	if err != nil {
 		return nil, err
 	}
 
-	file, err := os.Create(fmt.Sprintf("%s/%s.mp4", c.config.VideoDir, videoID))
+	util.Logger.Info("Creating youtube file", "videoID", videoID)
+	dir := fmt.Sprintf("%s/%s", c.config.VideoDir, videoID)
+	if err = createDirectory(dir); err != nil {
+		return nil, errors.New(fmt.Sprintf("error when creating directory %s", dir))
+	}
+	file, err := os.Create(getFileName(c.config, videoID))
 	if err != nil {
-		return nil, ErrCreatingFile
+		return nil, err
 	}
 	defer file.Close()
 
@@ -100,7 +116,37 @@ func (c *Client) DownloadVideo(url string) (*os.File, error) {
 		return nil, err
 	}
 
-	return file, nil
+	return &VideoYoutube{
+		File:  file,
+		Video: video,
+	}, nil
+}
+
+func createDirectory(path string) error {
+	_, err := os.Stat(path)
+	if err == nil {
+		return nil
+	}
+	if os.IsNotExist(err) {
+		err = createDirectory(filepath.Dir(path))
+		if err != nil {
+			return err
+		}
+		// Create the directory
+		err = os.Mkdir(path, os.ModePerm)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func getFileName(config configure.Config, videoId string) string {
+	return fmt.Sprintf("%s/%s/%s.mp4", config.VideoDir, videoId, videoId)
+}
+
+func GetStreamFile(config configure.Config, videoId string) string {
+	return fmt.Sprintf("%s/%s/%s.m3u8", config.VideoDir, videoId, videoId)
 }
 
 func getAudioWebmFormat(v *youtube.Video) (*youtube.Format, error) {

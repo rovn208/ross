@@ -15,6 +15,7 @@ type Querier interface {
 	FollowUser(ctx context.Context, arg FollowUserParams) (Follow, error)
 	GetListFollower(ctx context.Context, arg GetListFollowerParams) ([]Follow, error)
 	GetListFollowing(ctx context.Context, arg GetListFollowingParams) ([]Follow, error)
+	GetListVideo(ctx context.Context, arg GetListVideoParams) ([]Video, error)
 	GetUser(ctx context.Context, id int64) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
 	GetVideo(ctx context.Context, id int64) (Video, error)

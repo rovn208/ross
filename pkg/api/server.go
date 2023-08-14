@@ -49,11 +49,13 @@ func (server *Server) setupRouter() {
 
 	videosRouter := v1.Group("/videos")
 	videosRouter.GET("/:id", server.getVideo)
+	videosRouter.GET("/", server.getListVideo)
 	videosRouter.Use(authMiddleware(server.tokenMaker))
 	videosRouter.POST("/", server.createVideo)
 	videosRouter.DELETE("/:id", server.deleteVideo)
-	videosRouter.PUT("/", server.updateVideo)
+	videosRouter.PUT("/:id", server.updateVideo)
 	videosRouter.POST("/youtube", server.addYoutubeVideo)
+	videosRouter.POST("/upload", server.uploadVideo)
 
 	followsRouter := v1.Group("/follows")
 	followsRouter.Use(authMiddleware(server.tokenMaker))
