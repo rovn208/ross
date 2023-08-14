@@ -42,7 +42,8 @@ func (server *Server) setupRouter() {
 	usersRouter.POST("/", server.createUser)
 	usersRouter.Use(authMiddleware(server.tokenMaker))
 	usersRouter.POST("/me", server.updateUser)
-	usersRouter.GET("/:id", server.getUser)
+	usersRouter.GET("/me", server.getUser)
+	usersRouter.GET("/:id", server.getUserByID)
 
 	videosRouter := v1.Group("/videos")
 	videosRouter.GET("/:id", server.getVideo)
