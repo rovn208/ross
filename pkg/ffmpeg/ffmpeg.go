@@ -9,6 +9,7 @@ import (
 	"github.com/rovn208/ross/pkg/util"
 )
 
+// CheckVideoCorrupted checks whether the video is corrupted
 func CheckVideoCorrupted(fileName string) error {
 	cmd := exec.Command("ffmpeg", "-v", "error", "-i", fileName, "-f", "null", "-")
 	err := cmd.Run()
@@ -20,6 +21,7 @@ func CheckVideoCorrupted(fileName string) error {
 
 }
 
+// ToHLSFormat converts the video to hls
 func ToHLSFormat(ctx context.Context, fileName string) error {
 	err := CheckVideoCorrupted(fileName)
 	if err != nil {

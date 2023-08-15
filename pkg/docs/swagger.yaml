@@ -1,4 +1,534 @@
+basePath: /api/v1
+definitions:
+  api.listFollowResponse:
+    properties:
+      full_name:
+        type: string
+      user_id:
+        type: integer
+      username:
+        type: string
+    type: object
+  api.loginResponse:
+    properties:
+      access_token:
+        type: string
+      access_token_expired_at:
+        type: string
+      refresh_token:
+        type: string
+      refresh_token_expired_at:
+        type: string
+      user:
+        $ref: '#/definitions/api.userResponse'
+    type: object
+  api.userResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: integer
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  api.videoResponse:
+    properties:
+      created_at:
+        type: string
+      created_by:
+        type: integer
+      description:
+        type: string
+      id:
+        type: integer
+      stream_url:
+        type: string
+      thumbnail_url:
+        type: string
+      title:
+        type: string
+    type: object
+host: localhost:8080
 info:
-  contact: {}
-paths: {}
+  contact:
+    email: ngocro208@gmail.com
+    name: Ro Ngoc Vo
+    url: github.com/rovn208
+  description: Streaming service YouTube alike
+  title: ROSS API
+  version: 0.0.1
+paths:
+  /api/v1/follows/followers:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: "123456789"
+        in: body
+        name: following_user_id
+        required: true
+        schema:
+          type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"messsage": "unfollow user successfully"}'
+          schema:
+            type: string
+        "400":
+          description: '{"error": "error message"}'
+          schema: {}
+        "500":
+          description: '{"error": "error message"}'
+          schema: {}
+      summary: Unfollow user
+      tags:
+      - follows
+    get:
+      description: Get list follower
+      parameters:
+      - description: "20"
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: "0"
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api.listFollowResponse'
+            type: array
+        "500":
+          description: '{"error": "error message"}'
+          schema: {}
+      summary: Get list follower
+      tags:
+      - follows
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: "123456789"
+        in: body
+        name: following_user_id
+        required: true
+        schema:
+          type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"messsage": "follow user successfully"}'
+          schema:
+            type: string
+        "400":
+          description: '{"error": "error message"}'
+          schema: {}
+        "500":
+          description: '{"error": "error message"}'
+          schema: {}
+      summary: Follow user
+      tags:
+      - follows
+  /api/v1/follows/following:
+    get:
+      description: Get list following
+      parameters:
+      - description: "20"
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: "0"
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api.listFollowResponse'
+            type: array
+        "500":
+          description: '{"error": "error message"}'
+          schema: {}
+      summary: Get list following
+      tags:
+      - follows
+  /api/v1/users:
+    post:
+      consumes:
+      - application/json
+      description: Create new user
+      parameters:
+      - description: Username
+        in: body
+        name: username
+        required: true
+        schema:
+          type: string
+      - description: SecretPassword
+        in: body
+        minLength: 6
+        name: password
+        required: true
+        schema:
+          type: string
+      - description: Full Name
+        in: body
+        name: full_name
+        required: true
+        schema:
+          type: string
+      - description: Email@gmail.com
+        in: body
+        name: email
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.userResponse'
+        "400":
+          description: '{"error": "error message"}'
+          schema: {}
+        "500":
+          description: '{"error": "error message"}'
+          schema: {}
+      summary: Create new user
+      tags:
+      - user
+  /api/v1/users/{id}:
+    get:
+      description: Get user by id
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.userResponse'
+        "404":
+          description: '{"error": "error message"}'
+          schema: {}
+        "500":
+          description: '{"error": "error message"}'
+          schema: {}
+      summary: Get user by id
+      tags:
+      - user
+  /api/v1/users/login:
+    post:
+      consumes:
+      - application/json
+      description: Login
+      operationId: login
+      parameters:
+      - description: Username
+        in: body
+        minLength: 6
+        name: username
+        required: true
+        schema:
+          type: string
+      - description: Password
+        in: body
+        minLength: 6
+        name: password
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.loginResponse'
+        "400":
+          description: '{"error": "error message"}'
+          schema: {}
+        "404":
+          description: '{"error": "error message"}'
+          schema: {}
+        "500":
+          description: '{"error": "error message"}'
+          schema: {}
+      summary: Login
+      tags:
+      - auth
+  /api/v1/users/me:
+    get:
+      description: Get current user information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.userResponse'
+        "404":
+          description: '{"error": "error message"}'
+          schema: {}
+        "500":
+          description: '{"error": "error message"}'
+          schema: {}
+      summary: Get current user information
+      tags:
+      - user
+    put:
+      description: Update user
+      parameters:
+      - description: SecretPassword
+        in: body
+        minLength: 6
+        name: password
+        schema:
+          type: string
+      - description: Email@gmail.com
+        in: body
+        name: email
+        schema:
+          type: string
+      - description: FullName
+        in: body
+        name: full_name
+        schema:
+          type: string
+      - description: Username
+        in: body
+        name: username
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.userResponse'
+        "400":
+          description: '{"error": "error message"}'
+          schema: {}
+        "500":
+          description: '{"error": "error message"}'
+          schema: {}
+      summary: Update user information
+      tags:
+      - user
+  /api/v1/videos:
+    get:
+      description: Get list video
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api.videoResponse'
+            type: array
+        "500":
+          description: '{"error": "error message"}'
+          schema: {}
+      summary: Get list video
+      tags:
+      - video
+    post:
+      consumes:
+      - application/json
+      description: Create new video
+      parameters:
+      - description: Video title
+        in: body
+        minLength: 6
+        name: title
+        required: true
+        schema:
+          type: string
+      - description: foldername/video.mp4
+        in: body
+        name: stream_url
+        required: true
+        schema:
+          type: string
+      - description: Video description
+        in: body
+        name: description
+        schema:
+          type: string
+      - description: https://i.ytimg.com/vi/-uFQzcY7YHc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLBdAOc5E4H_G09C5wqorhYRsUwQrQ
+        in: body
+        name: thumbnail_url
+        schema:
+          type: string
+      - description: "123451"
+        in: body
+        name: created_by
+        required: true
+        schema:
+          type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.videoResponse'
+        "400":
+          description: '{"error": "error message"}'
+          schema: {}
+        "500":
+          description: '{"error": "error message"}'
+          schema: {}
+      summary: Create new video
+      tags:
+      - video
+  /api/v1/videos/{id}:
+    delete:
+      description: Delete video
+      parameters:
+      - description: "12345"
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: deleted video successfully
+          schema:
+            type: string
+        "400":
+          description: '{"error": "error message"}'
+          schema: {}
+        "500":
+          description: '{"error": "error message"}'
+          schema: {}
+      summary: Delete video
+      tags:
+      - video
+    get:
+      description: Get video
+      parameters:
+      - description: "12345"
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.videoResponse'
+        "400":
+          description: '{"error": "error message"}'
+          schema: {}
+        "500":
+          description: '{"error": "error message"}'
+          schema: {}
+      summary: Get video
+      tags:
+      - video
+    put:
+      consumes:
+      - application/json
+      description: Update video
+      parameters:
+      - description: Video title
+        in: body
+        minLength: 6
+        name: title
+        schema:
+          type: string
+      - description: foldername/video.mp4
+        in: body
+        name: stream_url
+        schema:
+          type: string
+      - description: Video description
+        in: body
+        name: description
+        schema:
+          type: string
+      - description: https://i.ytimg.com/vi/-uFQzcY7YHc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLBdAOc5E4H_G09C5wqorhYRsUwQrQ
+        in: body
+        name: thumbnail_url
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.videoResponse'
+        "400":
+          description: '{"error": "error message"}'
+          schema: {}
+        "500":
+          description: '{"error": "error message"}'
+          schema: {}
+      summary: Update video
+      tags:
+      - video
+  /api/v1/videos/youtube:
+    post:
+      consumes:
+      - application/json
+      description: Add video via youtube video url
+      parameters:
+      - description: https://www.youtube.com/watch?v=-uFQzcY7YHc
+        in: body
+        name: url
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: created video successfully
+          schema:
+            type: string
+        "400":
+          description: '{"error": "error message"}'
+          schema: {}
+        "500":
+          description: '{"error": "error message"}'
+          schema: {}
+      summary: Add video via youtube video url
+      tags:
+      - video
 swagger: "2.0"

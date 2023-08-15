@@ -23,6 +23,7 @@ type Server struct {
 	ytClient   *youtube.Client
 }
 
+// NewServer returns a new server with the given configuration
 func NewServer(config configure.Config, store db.Store, tokenMaker token.Maker) (*Server, error) {
 	server := &Server{
 		config:     config,
@@ -75,6 +76,7 @@ func (server *Server) setupRouter() {
 	server.router = router
 }
 
+// Start starts the HTTP server
 func (server *Server) Start(address string) error {
 	return server.router.Run(address)
 }

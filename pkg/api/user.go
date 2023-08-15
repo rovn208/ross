@@ -45,6 +45,19 @@ func newUserResponse(user db.User) userResponse {
 	}
 }
 
+// createUser godoc
+// @Summary Create new user
+// @Description Create new user
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param username body string true "Username" alphanum
+// @Param password body string true "SecretPassword" minlength(6)
+// @Param full_name body string true "Full Name"
+// @Param email body string true "Email@gmail.com" email
+// @Success 200 {object} userResponse
+// @Failure 400,500 {object} error "{"error": "error message"}"
+// @Router /api/v1/users [post]
 func (server *Server) createUser(ctx *gin.Context) {
 	var req createUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -85,6 +98,19 @@ type updateUserRequest struct {
 	Username string `json:"username,omitempty" binding:"required,alphanum"`
 }
 
+// updateUser godoc
+// @Summary Update user information
+// @Description Update user
+// @Tags user
+// @Produce json
+// @Param password body string false "SecretPassword" minlength(6)
+// @Param email body string false "Email@gmail.com" email
+// @Param full_name body string false "FullName"
+// @Param username body string true "Username" alphanum
+// @Success 200 {object} userResponse
+// @Failure 400 {object} error "{"error": "error message"}"
+// @Failure 500 {object} error "{"error": "error message"}"
+// @Router /api/v1/users/me [put]
 func (server *Server) updateUser(ctx *gin.Context) {
 	var req updateUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -129,6 +155,16 @@ type getUserRequest struct {
 	ID int64 `uri:"id,omitempty" binding:"required"`
 }
 
+// getUserByID godoc
+// @Summary Get user by id
+// @Tags user
+// @Description Get user by id
+// @Produce json
+// @Param id path int true "ID"
+// @Success 200 {object} userResponse
+// @Failure 404 {object} error "{"error": "error message"}"
+// @Failure 500 {object} error "{"error": "error message"}"
+// @Router /api/v1/users/{id} [get]
 func (server *Server) getUserByID(ctx *gin.Context) {
 	var req getUserRequest
 	if err := ctx.ShouldBindUri(&req); err != nil {
@@ -149,6 +185,15 @@ func (server *Server) getUserByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, newUserResponse(user))
 }
 
+// getUser godoc
+// @Summary Get current user information
+// @Tags user
+// @Description Get current user information
+// @Produce json
+// @Success 200 {object} userResponse
+// @Failure 404 {object} error "{"error": "error message"}"
+// @Failure 500 {object} error "{"error": "error message"}"
+// @Router /api/v1/users/me [get]
 func (server *Server) getUser(ctx *gin.Context) {
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 
@@ -174,6 +219,19 @@ type loginResponse struct {
 	User                  userResponse `json:"user"`
 }
 
+// login godoc
+// @Summary Login
+// @Tags auth
+// @Description Login
+// @ID login
+// @Accept json
+// @Produce json
+// @Param username body string true "Username" minlength(6) alphanum
+// @Param password body string true "Password" minlength(6)
+// @Success 200 {object} loginResponse
+// @Failure 400,404 {object} error "{"error": "error message"}"
+// @Failure 500 {object} error "{"error": "error message"}"
+// @Router /api/v1/users/login [post]
 func (server *Server) login(ctx *gin.Context) {
 	var req loginRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {

@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 )
 
+// IsFileAlreadyExists checks if a file exists
 func IsFileAlreadyExists(path string) bool {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -13,6 +14,7 @@ func IsFileAlreadyExists(path string) bool {
 	return false
 }
 
+// CreateDirectory creates a directory if it does not exist
 func CreateDirectory(path string) error {
 	_, err := os.Stat(path)
 	if err == nil {

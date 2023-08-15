@@ -35,13 +35,13 @@ type createVideoRequest struct {
 }
 
 type videoResponse struct {
-	ID           int64       `json:"id"`
-	Title        string      `json:"title"`
-	StreamUrl    string      `json:"stream_url"`
-	Description  pgtype.Text `json:"description"`
-	ThumbnailUrl pgtype.Text `json:"thumbnail_url"`
-	CreatedBy    int64       `json:"created_by"`
-	CreatedAt    time.Time   `json:"created_at"`
+	ID           int64     `json:"id"`
+	Title        string    `json:"title"`
+	StreamUrl    string    `json:"stream_url"`
+	Description  string    `json:"description"`
+	ThumbnailUrl string    `json:"thumbnail_url"`
+	CreatedBy    int64     `json:"created_by"`
+	CreatedAt    time.Time `json:"created_at"`
 }
 
 func newVideoResponse(video db.Video) videoResponse {
@@ -49,13 +49,27 @@ func newVideoResponse(video db.Video) videoResponse {
 		ID:           video.ID,
 		Title:        video.Title,
 		StreamUrl:    video.StreamUrl,
-		Description:  video.Description,
-		ThumbnailUrl: video.ThumbnailUrl,
+		Description:  video.Description.String,
+		ThumbnailUrl: video.ThumbnailUrl.String,
 		CreatedBy:    video.CreatedBy,
 		CreatedAt:    video.CreatedAt,
 	}
 }
 
+// CreateVideo godoc
+// @Summary Create new video
+// @Description Create new video
+// @Tags video
+// @Accept json
+// @Produce json
+// @Param title body string true "Video title" minlength(6)
+// @Param stream_url body string true "foldername/video.mp4"
+// @Param description body string false "Video description"
+// @Param thumbnail_url body string false "https://i.ytimg.com/vi/-uFQzcY7YHc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLBdAOc5E4H_G09C5wqorhYRsUwQrQ"
+// @Param created_by body int64 true "123451"
+// @Success 200 {object} videoResponse
+// @Failure 400,500 {object} error "{"error": "error message"}"
+// @Router /api/v1/videos [post]
 func (server *Server) createVideo(ctx *gin.Context) {
 	var req createVideoRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -89,6 +103,15 @@ type videoIDUriRequest struct {
 	ID string `uri:"id" binding:"required"`
 }
 
+// DeleteVideo godoc
+// @Summary Delete video
+// @Description Delete video
+// @Tags video
+// @Produce json
+// @Param id path int64 true "12345"
+// @Success 200 {object} string "deleted video successfully"
+// @Failure 400,500 {object} error "{"error": "error message"}"
+// @Router /api/v1/videos/{id} [delete]
 func (server *Server) deleteVideo(ctx *gin.Context) {
 	var req videoIDUriRequest
 	id, err := bindAndGetIdUri(req, ctx)
@@ -106,6 +129,15 @@ func (server *Server) deleteVideo(ctx *gin.Context) {
 
 }
 
+// GetVideo godoc
+// @Summary Get video
+// @Description Get video
+// @Tags video
+// @Produce json
+// @Param id path int64 true "12345"
+// @Success 200 {object} videoResponse
+// @Failure 400,500 {object} error "{"error": "error message"}"
+// @Router /api/v1/videos/{id} [get]
 func (server *Server) getVideo(ctx *gin.Context) {
 	var req videoIDUriRequest
 	id, err := bindAndGetIdUri(req, ctx)
@@ -129,6 +161,19 @@ type updateVideoRequest struct {
 	ThumbnailUrl string `json:"thumbnail_url"`
 }
 
+// UpdateVideo godoc
+// @Summary Update video
+// @Description Update video
+// @Tags video
+// @Accept json
+// @Produce json
+// @Param title body string false "Video title" minlength(6)
+// @Param stream_url body string false "foldername/video.mp4"
+// @Param description body string false "Video description"
+// @Param thumbnail_url body string false "https://i.ytimg.com/vi/-uFQzcY7YHc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLBdAOc5E4H_G09C5wqorhYRsUwQrQ"
+// @Success 200 {object} videoResponse
+// @Failure 400,500 {object} error "{"error": "error message"}"
+// @Router /api/v1/videos/{id} [put]
 func (server *Server) updateVideo(ctx *gin.Context) {
 	var uri videoIDUriRequest
 	id, err := bindAndGetIdUri(uri, ctx)
@@ -187,10 +232,50 @@ func bindAndGetIdUri(req videoIDUriRequest, ctx *gin.Context) (int64, error) {
 	return id, nil
 }
 
+func toListVideoResponse(videos []db.Video) []videoResponse {
+	res := make([]videoResponse, len(videos))
+	for i, video := range videos {
+		res[i] = newVideoResponse(video)
+	}
+	return res
+}
+
+// GetListVideo godoc
+// @Summary Get list video
+// @Description Get list video
+// @Tags video
+// @Produce json
+// @Success 200 {array} videoResponse
+// @Failure 500 {object} error "{"error": "error message"}"
+// @Router /api/v1/videos [get]
+func (server *Server) getListVideo(ctx *gin.Context) {
+	arg := db.GetListVideoParams{
+		Limit:  20,
+		Offset: 0,
+	}
+	videos, err := server.store.GetListVideo(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, toListVideoResponse(videos))
+}
+
 type addYoutubeVideoRequest struct {
 	URL string `json:"url,omitempty" binding:"required"`
 }
 
+// AddYoutubeVideo godoc
+// @Summary Add video via youtube video url
+// @Description Add video via youtube video url
+// @Tags video
+// @Accept json
+// @Produce json
+// @Param url body string true "https://www.youtube.com/watch?v=-uFQzcY7YHc"
+// @Success 200 {object} string "created video successfully"
+// @Failure 400,500 {object} error "{"error": "error message"}"
+// @Router /api/v1/videos/youtube [post]
 func (server *Server) addYoutubeVideo(ctx *gin.Context) {
 	var req addYoutubeVideoRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -251,29 +336,7 @@ func (server *Server) addYoutubeVideo(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, messageResponse("creating video via youtube video successfully"))
-}
-
-func toListVideoResponse(videos []db.Video) []videoResponse {
-	res := make([]videoResponse, len(videos))
-	for i, video := range videos {
-		res[i] = newVideoResponse(video)
-	}
-	return res
-}
-
-func (server *Server) getListVideo(ctx *gin.Context) {
-	arg := db.GetListVideoParams{
-		Limit:  20,
-		Offset: 0,
-	}
-	videos, err := server.store.GetListVideo(ctx, arg)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, toListVideoResponse(videos))
+	ctx.JSON(http.StatusOK, messageResponse("created video successfully"))
 }
 
 type uploadVideoRequest struct {
@@ -282,6 +345,17 @@ type uploadVideoRequest struct {
 	ThumbnailUrl string `form:"thumbnail_url,omitempty"`
 }
 
+// UploadVideo godoc
+// @Summary Add video via form uploading
+// @Description Add video via form uploading
+// @Tags video
+// @Accept multipart/form-data
+// @Produce json
+// @Param title body string true "Video title" minlength(6)
+// @Param description body string false "Video description"
+// @Param thumbnail_url body string false "https://i.ytimg.com/vi/-uFQzcY7YHc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLBdAOc5E4H_G09C5wqorhYRsUwQrQ"
+// @Success 200 {object} string "created video successfully"
+// @Failure 400,500 {object} error "{"error": "error message"}"
 func (server *Server) uploadVideo(ctx *gin.Context) {
 	var form uploadVideoRequest
 	if err := ctx.ShouldBind(&form); err != nil {
@@ -349,5 +423,5 @@ func (server *Server) uploadVideo(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, "To be implemented")
+	ctx.JSON(http.StatusOK, messageResponse("created video successfully"))
 }

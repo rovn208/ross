@@ -19,6 +19,7 @@ type JWTCustomClaims struct {
 	jwt.RegisteredClaims
 }
 
+// NewJWTMaker creates a new JWTMaker
 func NewJWTMaker(secretKey string) (Maker, error) {
 	if len(secretKey) < minSecretKeySize {
 		return nil, fmt.Errorf("invalid key size: must be at least %d characters", minSecretKeySize)
@@ -26,6 +27,7 @@ func NewJWTMaker(secretKey string) (Maker, error) {
 	return &JWTMaker{secretKey}, nil
 }
 
+// CreateToken creates a new token for a specific username and userID
 func (maker *JWTMaker) CreateToken(username string, userID int64, duration time.Duration) (string, *Payload, error) {
 	payload, err := NewPayload(username, userID, duration)
 	if err != nil {
@@ -37,6 +39,7 @@ func (maker *JWTMaker) CreateToken(username string, userID int64, duration time.
 	return token, payload, err
 }
 
+// VerifyToken verifies the token Payload if it is valid
 func (maker *JWTMaker) VerifyToken(token string) (*Payload, error) {
 	keyFunc := func(token *jwt.Token) (interface{}, error) {
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)

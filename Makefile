@@ -28,6 +28,6 @@ migratedown1:
 	migrate -database "$(DB_URL)" -path pkg/db/migration -verbose down 1
 
 swagger:
-	swag init -d cmd/serverd -o pkg/docs
+	swag init -d pkg/api -o pkg/docs -g ../../cmd/serverd/main.go
 
 .PHONY: run build sqlc migratecreate migrateup migrateup1 migratedown migratedown1 swagger

@@ -19,10 +19,8 @@ import (
 )
 
 var (
-	rx              = regexp.MustCompile(`https://(.+.youtube.com|youtu.be)/(watch\?v=([^&^>^|]+)|([^&^>^|]+))`)
-	ErrInvalidLink  = errors.New("invalid youtube link")
-	ErrCreatingFile = errors.New("error when creating file")
-	ErrRemovingFile = errors.New("error when removing file")
+	rx             = regexp.MustCompile(`https://(.+.youtube.com|youtu.be)/(watch\?v=([^&^>^|]+)|([^&^>^|]+))`)
+	ErrInvalidLink = errors.New("invalid youtube link")
 )
 
 type Client struct {
@@ -35,6 +33,7 @@ type VideoYoutube struct {
 	Video *youtube.Video
 }
 
+// NewYoutubeClient returns a new youtube client
 func NewYoutubeClient(config configure.Config) *Client {
 	util.Logger.Info("Creating youtube client")
 	proxyFunc := httpproxy.FromEnvironment().ProxyFunc()
@@ -61,6 +60,7 @@ func NewYoutubeClient(config configure.Config) *Client {
 	}
 }
 
+// GetVideoID returns the video id from the url
 func (c *Client) GetVideoID(url string) (id string, err error) {
 	if rx.MatchString(url) {
 		sub := rx.FindStringSubmatch(url)
@@ -80,6 +80,7 @@ func (c *Client) GetVideoID(url string) (id string, err error) {
 	return "", fmt.Errorf("%s %w", url, ErrInvalidLink)
 }
 
+// DownloadVideo downloads the video from youtube url
 func (c *Client) DownloadVideo(url string) (*VideoYoutube, error) {
 	util.Logger.Info("Downloading video from youtube", "url", url)
 	videoID, err := c.GetVideoID(url)
@@ -125,6 +126,7 @@ func getFileName(config configure.Config, videoId string) string {
 	return fmt.Sprintf("%s/%s/%s.mp4", config.VideoDir, videoId, videoId)
 }
 
+// GetStreamFile returns the stream file in a format of m3u8. e.g {videoDir}/{videoId}/{videoId}.m3u8
 func GetStreamFile(config configure.Config, videoId string) string {
 	return fmt.Sprintf("%s/%s/%s.m3u8", config.VideoDir, videoId, videoId)
 }

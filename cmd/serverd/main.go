@@ -9,7 +9,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/golang-migrate/migrate/v4"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rovn208/ross/pkg/api"
 	"github.com/rovn208/ross/pkg/configure"
@@ -17,6 +16,16 @@ import (
 	"github.com/rovn208/ross/pkg/token"
 )
 
+// @title ROSS API
+// @version 0.0.1
+// @description Streaming service YouTube alike
+//
+// @contact.name	Ro Ngoc Vo
+// @contact.url	github.com/rovn208
+// @contact.email	ngocro208@gmail.com
+
+// @host localhost:8080
+// @BasePath /api/v1
 func main() {
 	util.Logger.Info("Starting Server")
 	config, err := configure.LoadConfig(".")
@@ -52,17 +61,4 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	util.Logger.Info("Shutting down server")
-}
-
-func runDBMigration(migrationURL string, dbSource string) {
-	migration, err := migrate.New(migrationURL, dbSource)
-	if err != nil {
-		log.Fatal("cannot create new migrate instance")
-	}
-
-	if err = migration.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatal("failed to run migrate up")
-	}
-
-	log.Println("db migrated successfully")
 }

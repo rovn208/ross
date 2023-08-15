@@ -13,6 +13,7 @@ type SQLStore struct {
 	*Queries
 }
 
+// NewStore returns a new store
 func NewStore(connPool *pgxpool.Pool) Store {
 	return &SQLStore{
 		connPool: connPool,
