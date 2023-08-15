@@ -1,7 +1,7 @@
 package util
 
 var (
-	SUPPORTED_VIDEO_EXTENSIONS = []string{"mp4", "avi"}
+	SUPPORTED_VIDEO_EXTENSIONS = []string{"mp4", "mov"}
 )
 
 func IsSupportedExtensions(ex string) bool {
