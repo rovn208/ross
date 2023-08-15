@@ -1,7 +1,7 @@
 DB_URL=postgresql://root:secret@localhost:5432/ross_local?sslmode=disable
 
 run:
-	DATABASE_URL=postgres://root:secret@localhost:5432/ross_local?sslmode=disable go run cmd/serverd/main.go
+	DATABASE_URL=$(DB_URL) go run cmd/serverd/main.go
 
 build:
 	docker build . -t ross-api
@@ -27,4 +27,7 @@ migratedown:
 migratedown1:
 	migrate -database "$(DB_URL)" -path pkg/db/migration -verbose down 1
 
-.PHONY: run build sqlc migrate-create migrate-up migrate-down
+swagger:
+	swag init -d cmd/serverd -o pkg/docs
+
+.PHONY: run build sqlc migratecreate migrateup migrateup1 migratedown migratedown1 swagger

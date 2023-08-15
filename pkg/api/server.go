@@ -6,9 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rovn208/ross/pkg/configure"
 	db "github.com/rovn208/ross/pkg/db/sqlc"
+	"github.com/rovn208/ross/pkg/docs"
 	"github.com/rovn208/ross/pkg/token"
 	"github.com/rovn208/ross/pkg/youtube"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
+var v1RouterPrefix = "/api/v1"
 
 type Server struct {
 	config     configure.Config
@@ -35,9 +40,12 @@ func (server *Server) setupRouter() {
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
-	v1 := router.Group("/api/v1")
+	v1 := router.Group(v1RouterPrefix)
 	v1.Use(corsMiddleware())
 	v1.StaticFS("/sources/", http.Dir(server.config.VideoDir))
+
+	v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	docs.SwaggerInfo.BasePath = v1RouterPrefix
 
 	usersRouter := v1.Group("/users")
 	usersRouter.POST("/login", server.login)
