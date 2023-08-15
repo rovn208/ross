@@ -3,16 +3,15 @@ package youtube
 import (
 	"errors"
 	"fmt"
-	"github.com/rovn208/ross/pkg/util"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
-	"path/filepath"
 	"regexp"
-	"strings"
 	"time"
+
+	"github.com/rovn208/ross/pkg/util"
 
 	"github.com/kkdai/youtube/v2"
 	"github.com/rovn208/ross/pkg/configure"
@@ -87,23 +86,23 @@ func (c *Client) DownloadVideo(url string) (*VideoYoutube, error) {
 	if err != nil {
 		return nil, err
 	}
-	util.Logger.Info("Getting video from youtube", "videoID", videoID)
+
 	video, err := c.GetVideo(videoID)
 	if err != nil {
 		return nil, err
 	}
 
 	formats := video.Formats.WithAudioChannels() // only get videos with audio
+	util.Logger.Info("Getting video from youtube", "videoID", videoID, "format", formats[0])
 	fileReader, _, err := c.GetStream(video, &formats[0])
-	defer fileReader.Close()
 	if err != nil {
 		return nil, err
 	}
 
 	util.Logger.Info("Creating youtube file", "videoID", videoID)
 	dir := fmt.Sprintf("%s/%s", c.config.VideoDir, videoID)
-	if err = createDirectory(dir); err != nil {
-		return nil, errors.New(fmt.Sprintf("error when creating directory %s", dir))
+	if err = util.CreateDirectory(dir); err != nil {
+		return nil, fmt.Errorf("error when creating directory %s", dir)
 	}
 	file, err := os.Create(getFileName(c.config, videoID))
 	if err != nil {
@@ -122,43 +121,10 @@ func (c *Client) DownloadVideo(url string) (*VideoYoutube, error) {
 	}, nil
 }
 
-func createDirectory(path string) error {
-	_, err := os.Stat(path)
-	if err == nil {
-		return nil
-	}
-	if os.IsNotExist(err) {
-		err = createDirectory(filepath.Dir(path))
-		if err != nil {
-			return err
-		}
-		// Create the directory
-		err = os.Mkdir(path, os.ModePerm)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func getFileName(config configure.Config, videoId string) string {
 	return fmt.Sprintf("%s/%s/%s.mp4", config.VideoDir, videoId, videoId)
 }
 
 func GetStreamFile(config configure.Config, videoId string) string {
 	return fmt.Sprintf("%s/%s/%s.m3u8", config.VideoDir, videoId, videoId)
-}
-
-func getAudioWebmFormat(v *youtube.Video) (*youtube.Format, error) {
-	formats := v.Formats
-
-	audioFormats := formats.Type("audio")
-	audioFormats.Sort()
-	for _, fm := range formats {
-		if strings.HasPrefix(fm.MimeType, "audio/webm") {
-			return &fm, nil
-		}
-	}
-	// no webm, take first format
-	return &formats[0], nil
 }

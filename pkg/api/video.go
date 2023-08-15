@@ -3,13 +3,16 @@ package api
 import (
 	"errors"
 	"fmt"
-	"github.com/rovn208/ross/pkg/token"
-	"github.com/rovn208/ross/pkg/util"
-	"github.com/rovn208/ross/pkg/youtube"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/rovn208/ross/pkg/token"
+	"github.com/rovn208/ross/pkg/util"
+	"github.com/rovn208/ross/pkg/youtube"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -18,8 +21,9 @@ import (
 )
 
 var (
-	ErrVideoDoesNotExists = errors.New("video does not exists")
-	ErrVideoAlreadyExists = errors.New("video already exists")
+	ErrVideoDoesNotExists       = errors.New("video does not exists")
+	ErrVideoAlreadyExists       = errors.New("video already exists")
+	ErrUnsupportedFileExtension = errors.New("unsupported file extension")
 )
 
 type createVideoRequest struct {
@@ -247,7 +251,7 @@ func (server *Server) addYoutubeVideo(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusInternalServerError, messageResponse("creating video via youtube video successfully"))
+	ctx.JSON(http.StatusOK, messageResponse("creating video via youtube video successfully"))
 }
 
 func toListVideoResponse(videos []db.Video) []videoResponse {
@@ -272,6 +276,78 @@ func (server *Server) getListVideo(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, toListVideoResponse(videos))
 }
 
+type uploadVideoRequest struct {
+	Title        string `form:"title,omitempty" binding:"required,min=8"`
+	Description  string `form:"description,omitempty"`
+	ThumbnailUrl string `form:"thumbnail_url,omitempty"`
+}
+
 func (server *Server) uploadVideo(ctx *gin.Context) {
+	var form uploadVideoRequest
+	if err := ctx.ShouldBind(&form); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	title := ctx.PostForm("title")
+	description := ctx.PostForm("description")
+	thumbnailUrl := ctx.PostForm("thumbnail_url")
+	file, err := ctx.FormFile("file")
+	id := uuid.New()
+	if err != nil {
+		util.Logger.Error("get form file error", "error", err)
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	util.Logger.Info("Creating youtube file", "videoID", id)
+	dir := fmt.Sprintf("%s/%s", server.config.VideoDir, id)
+	if err = util.CreateDirectory(dir); err != nil {
+		util.Logger.Error("error when creating directory", "dir", dir, "error", err)
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+	filenameParts := strings.Split(file.Filename, ".")
+	videoExtension := filenameParts[1]
+	if !util.IsSupportedExtensions(videoExtension) {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(ErrUnsupportedFileExtension))
+		return
+	}
+	fileName := fmt.Sprintf("%s/%s.%s", dir, id, videoExtension)
+	ctx.SaveUploadedFile(file, fileName)
+
+	err = ffmpeg.ToHLSFormat(ctx, fileName)
+	if err != nil {
+		util.Logger.Error("Error when converting hls", "error", err)
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	err = os.Remove(fileName)
+	if err != nil {
+		util.Logger.Error("Error when removing file", "error", err)
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	_, err = server.store.CreateVideo(ctx, db.CreateVideoParams{
+		StreamUrl: fmt.Sprintf("%s/%s.m3u8", id, id),
+		Title:     title,
+		Description: pgtype.Text{
+			String: description,
+			Valid:  description != "",
+		},
+		ThumbnailUrl: pgtype.Text{
+			String: thumbnailUrl,
+			Valid:  thumbnailUrl != "",
+		},
+		CreatedBy: authPayload.UserID,
+	})
+	if err != nil {
+		util.Logger.Error("Error when saving video metadata into database", "video", fileName, "error", err)
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 	ctx.JSON(http.StatusOK, "To be implemented")
 }
