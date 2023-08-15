@@ -13,6 +13,7 @@ Ross is a streaming service YouTube alike
 
 > docker compose up -d
 
+- Swagger URL for available endpoints: http://localhost:8080/api/v1/swagger/index.html 
 ## Features
 - [x] User management
 - [x] Video management
