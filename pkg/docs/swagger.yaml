@@ -385,7 +385,7 @@ paths:
         name: description
         schema:
           type: string
-      - description: https://i.ytimg.com/vi/-uFQzcY7YHc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLBdAOc5E4H_G09C5wqorhYRsUwQrQ
+      - description: URL of the thumbnail image. ie. https://i.ytimg.com/vi/-uFQzcY7YHc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLBdAOc5E4H_G09C5wqorhYRsUwQrQ
         in: body
         name: thumbnail_url
         schema:
@@ -482,7 +482,7 @@ paths:
         name: description
         schema:
           type: string
-      - description: https://i.ytimg.com/vi/-uFQzcY7YHc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLBdAOc5E4H_G09C5wqorhYRsUwQrQ
+      - description: URL of the thumbnail image. ie. https://i.ytimg.com/vi/-uFQzcY7YHc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLBdAOc5E4H_G09C5wqorhYRsUwQrQ
         in: body
         name: thumbnail_url
         schema:
@@ -501,6 +501,47 @@ paths:
           description: '{"error": "error message"}'
           schema: {}
       summary: Update video
+      tags:
+      - video
+  /api/v1/videos/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Add video via form uploading
+      parameters:
+      - description: video file
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Video title
+        in: formData
+        minLength: 6
+        name: title
+        required: true
+        type: string
+      - description: Video description
+        in: formData
+        name: description
+        type: string
+      - description: URL of the thumbnail image. ie. https://i.ytimg.com/vi/-uFQzcY7YHc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLBdAOc5E4H_G09C5wqorhYRsUwQrQ
+        in: formData
+        name: thumbnail_url
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: created video successfully
+          schema:
+            type: string
+        "400":
+          description: '{"error": "error message"}'
+          schema: {}
+        "500":
+          description: '{"error": "error message"}'
+          schema: {}
+      summary: Add video via form uploading
       tags:
       - video
   /api/v1/videos/youtube:

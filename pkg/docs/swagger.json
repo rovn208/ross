@@ -497,7 +497,7 @@
                         }
                     },
                     {
-                        "description": "https://i.ytimg.com/vi/-uFQzcY7YHc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG\u0026rs=AOn4CLBdAOc5E4H_G09C5wqorhYRsUwQrQ",
+                        "description": "URL of the thumbnail image. ie. https://i.ytimg.com/vi/-uFQzcY7YHc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG\u0026rs=AOn4CLBdAOc5E4H_G09C5wqorhYRsUwQrQ",
                         "name": "thumbnail_url",
                         "in": "body",
                         "schema": {
@@ -519,6 +519,66 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/api.videoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "{\"error\": \"error message\"}",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "{\"error\": \"error message\"}",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/videos/upload": {
+            "post": {
+                "description": "Add video via form uploading",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "video"
+                ],
+                "summary": "Add video via form uploading",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "video file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "minLength": 6,
+                        "type": "string",
+                        "description": "Video title",
+                        "name": "title",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Video description",
+                        "name": "description",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "URL of the thumbnail image. ie. https://i.ytimg.com/vi/-uFQzcY7YHc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG\u0026rs=AOn4CLBdAOc5E4H_G09C5wqorhYRsUwQrQ",
+                        "name": "thumbnail_url",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "created video successfully",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -649,7 +709,7 @@
                         }
                     },
                     {
-                        "description": "https://i.ytimg.com/vi/-uFQzcY7YHc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG\u0026rs=AOn4CLBdAOc5E4H_G09C5wqorhYRsUwQrQ",
+                        "description": "URL of the thumbnail image. ie. https://i.ytimg.com/vi/-uFQzcY7YHc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG\u0026rs=AOn4CLBdAOc5E4H_G09C5wqorhYRsUwQrQ",
                         "name": "thumbnail_url",
                         "in": "body",
                         "schema": {

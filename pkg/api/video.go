@@ -65,7 +65,7 @@ func newVideoResponse(video db.Video) videoResponse {
 // @Param title body string true "Video title" minlength(6)
 // @Param stream_url body string true "foldername/video.mp4"
 // @Param description body string false "Video description"
-// @Param thumbnail_url body string false "https://i.ytimg.com/vi/-uFQzcY7YHc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLBdAOc5E4H_G09C5wqorhYRsUwQrQ"
+// @Param thumbnail_url body string false "Thumbnail image url"
 // @Param created_by body int64 true "123451"
 // @Success 200 {object} videoResponse
 // @Failure 400,500 {object} error "{"error": "error message"}"
@@ -170,7 +170,7 @@ type updateVideoRequest struct {
 // @Param title body string false "Video title" minlength(6)
 // @Param stream_url body string false "foldername/video.mp4"
 // @Param description body string false "Video description"
-// @Param thumbnail_url body string false "https://i.ytimg.com/vi/-uFQzcY7YHc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLBdAOc5E4H_G09C5wqorhYRsUwQrQ"
+// @Param thumbnail_url body string false "Thumbnail image url"
 // @Success 200 {object} videoResponse
 // @Failure 400,500 {object} error "{"error": "error message"}"
 // @Router /api/v1/videos/{id} [put]
@@ -351,11 +351,13 @@ type uploadVideoRequest struct {
 // @Tags video
 // @Accept multipart/form-data
 // @Produce json
-// @Param title body string true "Video title" minlength(6)
-// @Param description body string false "Video description"
-// @Param thumbnail_url body string false "https://i.ytimg.com/vi/-uFQzcY7YHc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLBdAOc5E4H_G09C5wqorhYRsUwQrQ"
+// @Param file formData file true "video file"
+// @Param title formData string true "Video title" minlength(6)
+// @Param description formData string false "Video description"
+// @Param thumbnail_url formData string false "Thumbnail image url"
 // @Success 200 {object} string "created video successfully"
 // @Failure 400,500 {object} error "{"error": "error message"}"
+// @Router /api/v1/videos/upload [post]
 func (server *Server) uploadVideo(ctx *gin.Context) {
 	var form uploadVideoRequest
 	if err := ctx.ShouldBind(&form); err != nil {
