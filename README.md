@@ -10,8 +10,16 @@ Ross is a streaming service YouTube alike
 - [golang-migrate](https://github.com/golang-migrate/migrate)
 
 ## Easy to start
+```bash
+# Setup and run database
+make db
+# Migrate data schema
+make migrateup
 
-> docker compose up -d
+# Running the application
+make run # If you wanna run in the current terminal
+docker compose up -d # If you wanna run in docker
+```
 
 - Swagger URL for available endpoints: http://localhost:8080/api/v1/swagger/index.html 
 ## Features
