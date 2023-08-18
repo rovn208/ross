@@ -19,7 +19,7 @@ WHERE id = $1 LIMIT 1;
 -- name: UpdateUser :one
 UPDATE users
 SET
-    hashed_password = COALESCE(sqlc.narg(hashed_password), hash_password),
+    hashed_password = COALESCE(sqlc.narg(hashed_password), hashed_password),
     email = COALESCE(sqlc.narg(email), email),
     full_name = COALESCE(sqlc.narg(full_name), full_name)
 WHERE

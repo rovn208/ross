@@ -92,7 +92,7 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
 SET
-    hashed_password = COALESCE($1, hash_password),
+    hashed_password = COALESCE($1, hashed_password),
     email = COALESCE($2, email),
     full_name = COALESCE($3, full_name)
 WHERE

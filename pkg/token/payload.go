@@ -8,7 +8,7 @@ import (
 
 var (
 	ErrInvalidToken = errors.New("token is invalid")
-	ErrExpiredToken = errors.New("token has expired")
+	ErrExpiredToken = errors.New("token has invalid claims: token is expired")
 )
 
 type Payload struct {

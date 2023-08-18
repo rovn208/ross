@@ -46,7 +46,6 @@ func main() {
 	if err != nil {
 		log.Fatal("error when initializing server")
 	}
-	//runDBMigration(config.MigrationURL, config.DBUrl)
 
 	go func() {
 		if err = server.Start(config.HTTPServerAddress); err != nil {

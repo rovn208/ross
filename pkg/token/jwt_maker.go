@@ -1,7 +1,6 @@
 package token
 
 import (
-	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"time"
@@ -51,7 +50,7 @@ func (maker *JWTMaker) VerifyToken(token string) (*Payload, error) {
 
 	jwtToken, err := jwt.ParseWithClaims(token, &JWTCustomClaims{}, keyFunc)
 	if err != nil {
-		if errors.Is(err, ErrExpiredToken) {
+		if err.Error() == ErrExpiredToken.Error() {
 			return nil, ErrExpiredToken
 		}
 		return nil, ErrInvalidToken

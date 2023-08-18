@@ -31,6 +31,6 @@ swagger:
 	swag init -d pkg/api -o pkg/docs -g ../../cmd/serverd/main.go
 
 test:
-	go test ./... -v -cover
+	go test ./... -cover
 
 .PHONY: run build sqlc migratecreate migrateup migrateup1 migratedown migratedown1 swagger test
