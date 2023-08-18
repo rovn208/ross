@@ -1,4 +1,8 @@
 # ross
+[![Build](https://github.com/rovn208/ross/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/rovn208/ross/actions/workflows/test.yml/badge.svg?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/rovn208/ross)](https://goreportcard.com/report/github.com/rovn208/ross)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/rovn208/ross/blob/master/LICENSE)
+
 Ross is a streaming service YouTube alike
 
 ## Prerequisite
