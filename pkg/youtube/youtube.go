@@ -94,11 +94,12 @@ func (c *Client) DownloadVideo(url string) (*VideoYoutube, error) {
 	}
 
 	formats := video.Formats.WithAudioChannels() // only get videos with audio
-	util.Logger.Info("Getting video from youtube", "videoID", videoID, "format", formats[0])
+	util.Logger.Info("Getting video from youtube", "videoID", videoID)
 	fileReader, _, err := c.GetStream(video, &formats[0])
 	if err != nil {
 		return nil, err
 	}
+	defer fileReader.Close()
 
 	util.Logger.Info("Creating youtube file", "videoID", videoID)
 	dir := fmt.Sprintf("%s/%s", c.config.VideoDir, videoID)

@@ -2,13 +2,17 @@ package main
 
 import (
 	"context"
-	"github.com/rovn208/ross/pkg/util"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/rovn208/ross/pkg/util"
+
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rovn208/ross/pkg/api"
 	"github.com/rovn208/ross/pkg/configure"
@@ -37,11 +41,13 @@ func main() {
 	if err != nil {
 		log.Fatal("cannot when initialize db", err)
 	}
-	store := db.NewStore(connPool)
+
+	runDBMigration(config.MigrationURL, config.DBUrl)
 	tokenMaker, err := token.NewJWTMaker(config.TokenSecretKey)
 	if err != nil {
 		log.Fatal("error when initializing token maker", err)
 	}
+	store := db.NewStore(connPool)
 	server, err := api.NewServer(config, store, tokenMaker)
 	if err != nil {
 		log.Fatal("error when initializing server")
@@ -60,4 +66,18 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	util.Logger.Info("Shutting down server")
+}
+
+func runDBMigration(migrationURL string, dbSource string) {
+	migration, err := migrate.New(migrationURL, dbSource)
+	if err != nil {
+		util.Logger.Error("cannot create new migrate instance", "error", err)
+		log.Fatal("cannot create new migrate instance")
+	}
+
+	if err = migration.Up(); err != nil && err != migrate.ErrNoChange {
+		log.Fatal("failed to run migrate up")
+	}
+
+	util.Logger.Info("Database migrated successfully")
 }
