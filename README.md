@@ -26,6 +26,7 @@ docker compose up -d # If you wanna run in docker
 ```
 
 - Swagger URL for available endpoints: http://localhost:8080/api/v1/swagger/index.html 
+- Upload video demo: https://youtu.be/TPTDeHkC4d8
 ## Features
 - [x] User management
 - [x] Video management
