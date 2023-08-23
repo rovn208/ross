@@ -34,7 +34,7 @@ docker compose up -d # If you wanna run in docker
   - Video's CRUD
 - [x] Following/Follower functionality
 - [ ] Video Feeds
-- [ ] Subscribing videos
+- [x] Subscribing videos
 - [ ] Room streaming
 
 ### Supported transport protocols
